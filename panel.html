@@ -1,0 +1,2145 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Panel">
+<title>Panel</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #0f0f0f;
+  color: #e0e0e0;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+.screen { display: none; min-height: 100vh; min-height: 100dvh; }
+.screen.active { display: block; }
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 12px;
+  background: #0f0f0f;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+.header-left, .header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 60px;
+}
+.header-right { justify-content: flex-end; }
+.icon-btn {
+  background: none; border: none; color: #ccc;
+  font-size: 22px; cursor: pointer; padding: 4px; line-height: 1;
+}
+.header-title {
+  font-size: 18px; font-weight: 500; color: #e8e8e8;
+  text-align: center; flex: 1;
+}
+.back-btn {
+  background: none; border: none; color: #4da3ff;
+  font-size: 16px; font-weight: 500; cursor: pointer; padding: 4px 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  padding: 8px 16px 30px;
+}
+.card {
+  background: #1c1c1c;
+  border-radius: 18px;
+  border: 0.5px solid #2a2a2a;
+  padding: 22px 12px 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  min-height: 118px;
+  user-select: none;
+}
+.card:active { background: #252525; transform: scale(0.97); }
+.card-icon { font-size: 36px; margin-bottom: 12px; line-height: 1; }
+.card-label { font-size: 13.5px; font-weight: 500; color: #e0e0e0; line-height: 1.3; }
+
+.content { padding: 12px 16px 40px; }
+.section-title { font-size: 13px; color: #888; margin-bottom: 8px; font-weight: 500; }
+textarea {
+  width: 100%;
+  height: 160px;
+  background: #1a1a1a;
+  border: 0.5px solid #333;
+  border-radius: 12px;
+  color: #e0e0e0;
+  padding: 12px;
+  font-size: 13px;
+  resize: none;
+  line-height: 1.4;
+}
+.btn-row { display: flex; gap: 10px; margin-top: 12px; }
+.btn {
+  border: none;
+  border-radius: 10px;
+  height: 42px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  flex: 1;
+}
+.btn-primary { background: #1a6edb; color: #fff; }
+.btn-danger { background: #2a1010; color: #ff5555; border: 0.5px solid #5a2020; }
+
+.list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 20px 0 10px;
+}
+.list-count { font-size: 13px; color: #888; }
+
+.item {
+  background: #1c1c1c;
+  border: 0.5px solid #2a2a2a;
+  border-radius: 14px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  border-left: 5px solid #444;
+}
+.item-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.item-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e8e8e8;
+  line-height: 1.3;
+}
+.item-ep {
+  background: #1a2a1a;
+  color: #4cd966;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+.item-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 12px;
+  color: #888;
+}
+.meta-badge {
+  background: #222;
+  padding: 2px 7px;
+  border-radius: 6px;
+}
+.meta-gn { color: #4da3ff; }
+.meta-art { color: #aaa; }
+.meta-date { color: #888; }
+
+.empty {
+  text-align: center;
+  padding: 50px 20px;
+  color: #555;
+  font-size: 14px;
+}
+</style>
+</head>
+<body>
+
+<!-- PANEL -->
+<div id="screen-panel" class="screen active">
+  <div class="header">
+    <div class="header-left"><button class="icon-btn" style="opacity:0.3;">☰</button></div>
+    <div class="header-title">Panel</div>
+    <div class="header-right">
+      <button class="icon-btn" onclick="showScreen('notatki')" title="Szybkie notatki">📄</button>
+      <button class="icon-btn" onclick="showScreen('backup')" title="Backup">💾</button>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card" onclick="showScreen('przydzial')">
+      <div class="card-icon">👩‍💼</div>
+      <div class="card-label">Przydział<br>od szefowej</div>
+    </div>
+    <div class="card" onclick="showScreen('wolne')">
+      <div class="card-icon">📤</div>
+      <div class="card-label">Wolne gniazda</div>
+    </div>
+    <div class="card" onclick="showScreen('puste')">
+      <div class="card-icon">📍</div>
+      <div class="card-label">Puste gniazda</div>
+    </div>
+    <div class="card" onclick="showScreen('zablokowane')">
+      <div class="card-icon">🔒</div>
+      <div class="card-label">Zablokowane<br>palety</div>
+    </div>
+    <div class="card" onclick="showScreen('so')">
+      <div class="card-icon">📦</div>
+      <div class="card-label">SO</div>
+    </div>
+    <div class="card" onclick="showScreen('grafik')">
+      <div class="card-icon">📅</div>
+      <div class="card-label">Grafik</div>
+    </div>
+    <div class="card" onclick="showScreen('urlop')">
+      <div class="card-icon">🏖️</div>
+      <div class="card-label">Urlop</div>
+    </div>
+    <div class="card" onclick="showScreen('zadania')">
+      <div class="card-icon">📝</div>
+      <div class="card-label">Zadania</div>
+    </div>
+  </div>
+</div>
+
+<!-- PRZYDZIAŁ -->
+<div id="screen-przydzial" class="screen">
+  <div class="header">
+    <div class="header-left">
+      <button class="back-btn" onclick="showScreen('panel')">← Wróć</button>
+    </div>
+    <div class="header-title">Przydział od szefowej</div>
+    <div class="header-right"></div>
+  </div>
+
+  <div class="content">
+    <div class="section-title">Wklej listę z tabeli</div>
+    <textarea id="input-list" placeholder="Wklej tutaj listę..."></textarea>
+
+    <div class="btn-row" style="flex-wrap:wrap;">
+      <button class="btn btn-primary" onclick="loadList()">Wczytaj listę</button>
+      <button class="btn btn-secondary" id="btn-przydzial-undo" onclick="undoPrzydzial()" disabled style="background:#1a1a2a; color:#aaa; border:0.5px solid #333;">↩ Cofnij</button>
+      <button class="btn btn-secondary" onclick="copyPrzydzial()" style="background:#0d3a2a; color:#4cd9aa; border:0.5px solid #1a5c3a;">📋 Kopiuj</button>
+      <button class="btn btn-danger" onclick="clearList()">Reset</button>
+    </div>
+
+    <div id="list-container">
+      <div class="empty">Brak wczytanej listy</div>
+    </div>
+  </div>
+</div>
+
+<!-- WOLNE GNIAZDA -->
+<div id="screen-wolne" class="screen">
+  <div class="header">
+    <div class="header-left">
+      <button class="back-btn" onclick="showScreen('panel')">← Wróć</button>
+    </div>
+    <div class="header-title">Wolne gniazda</div>
+    <div class="header-right"></div>
+  </div>
+
+  <div class="content">
+    <div class="section-title">Dodaj wolne gniazdo</div>
+    <div style="display:flex; gap:10px; margin-bottom:12px;">
+      <input id="wolne-input" type="text" placeholder="np. 35-017" 
+        style="flex:1; height:42px; background:#1a1a1a; border:0.5px solid #333; border-radius:10px; color:#e0e0e0; padding:0 12px; font-size:15px;"
+        onkeydown="if(event.key==='Enter') addWolne()">
+      <button class="btn btn-primary" style="flex:0 0 90px;" onclick="addWolne()">Dodaj</button>
+    </div>
+
+    <div class="btn-row" style="margin-bottom:16px; flex-wrap:wrap;">
+      <button class="btn btn-secondary" id="btn-wolne-undo" onclick="undoWolne()" disabled style="background:#1a1a2a; color:#aaa; border:0.5px solid #333; flex:1;">↩ Cofnij</button>
+      <button class="btn btn-secondary" onclick="copyWolne()" style="background:#0d3a2a; color:#4cd9aa; border:0.5px solid #1a5c3a; flex:1;">📋 Kopiuj</button>
+      <button class="btn btn-danger" onclick="clearWolne()" style="flex:1;">Reset</button>
+    </div>
+
+    <div id="wolne-list">
+      <div class="empty">Brak zapisanych gniazd</div>
+    </div>
+  </div>
+</div>
+
+<!-- PUSTE GNIAZDA -->
+<div id="screen-puste" class="screen">
+  <div class="header">
+    <div class="header-left">
+      <button class="back-btn" onclick="showScreen('panel')">← Wróć</button>
+    </div>
+    <div class="header-title">Puste gniazda</div>
+    <div class="header-right"></div>
+  </div>
+
+  <div class="content">
+    <div class="section-title">Data kontroli</div>
+    <input id="puste-date" type="date" 
+      style="width:100%; height:42px; background:#1a1a1a; border:0.5px solid #333; border-radius:10px; color:#e0e0e0; padding:0 12px; font-size:15px; margin-bottom:14px;">
+
+    <div class="section-title">Wklej listę pustych gniazd (jedno na linię)</div>
+    <textarea id="puste-input" placeholder="np.&#10;35-003&#10;35-017&#10;35-021" style="height:120px;"></textarea>
+
+    <div class="btn-row" style="margin-top:12px; flex-wrap:wrap;">
+      <button class="btn btn-primary" onclick="processPuste()">Wczytaj listę</button>
+      <button class="btn btn-secondary" id="btn-puste-undo" onclick="undoPuste()" disabled style="background:#1a1a2a; color:#aaa; border:0.5px solid #333;">↩ Cofnij</button>
+      <button class="btn btn-secondary" onclick="copyPuste()" style="background:#0d3a2a; color:#4cd9aa; border:0.5px solid #1a5c3a;">📋 Kopiuj</button>
+      <button class="btn btn-danger" onclick="clearPuste()">Reset</button>
+    </div>
+
+    <div id="puste-results" style="margin-top:20px;"></div>
+  </div>
+</div>
+
+<!-- ZABLOKOWANE PALETY -->
+<div id="screen-zablokowane" class="screen">
+  <div class="header">
+    <div class="header-left">
+      <button class="back-btn" onclick="showScreen('panel')">← Wróć</button>
+    </div>
+    <div class="header-title">Zablokowane palety</div>
+    <div class="header-right"></div>
+  </div>
+
+  <div class="content">
+    <div class="section-title">Nazwa towaru</div>
+    <input id="zab-name" type="text" placeholder="np. Masło ekstra 83%" 
+      style="width:100%; height:42px; background:#1a1a1a; border:0.5px solid #333; border-radius:10px; color:#e0e0e0; padding:0 12px; font-size:15px; margin-bottom:12px;">
+
+    <div class="section-title">Data przydatności</div>
+    <input id="zab-date" type="date" 
+      style="width:100%; height:42px; background:#1a1a1a; border:0.5px solid #333; border-radius:10px; color:#e0e0e0; padding:0 12px; font-size:15px; margin-bottom:12px;">
+
+    <div class="section-title">Lokalizacja</div>
+    <input id="zab-loc" type="text" placeholder="np. Strefa A, przy bramie, 35-021..." 
+      style="width:100%; height:42px; background:#1a1a1a; border:0.5px solid #333; border-radius:10px; color:#e0e0e0; padding:0 12px; font-size:15px; margin-bottom:14px;">
+
+    <div class="btn-row" style="flex-wrap:wrap; margin-bottom:16px;">
+      <button class="btn btn-primary" onclick="addZab()">Dodaj</button>
+      <button class="btn btn-secondary" id="btn-zab-undo" onclick="undoZab()" disabled style="background:#1a1a2a; color:#aaa; border:0.5px solid #333;">↩ Cofnij</button>
+      <button class="btn btn-secondary" onclick="copyZab()" style="background:#0d3a2a; color:#4cd9aa; border:0.5px solid #1a5c3a;">📋 Kopiuj</button>
+      <button class="btn btn-danger" onclick="clearZab()">Reset</button>
+    </div>
+
+    <div id="zab-list">
+      <div class="empty">Brak zablokowanych pozycji</div>
+    </div>
+  </div>
+</div>
+
+<!-- SO -->
+<div id="screen-so" class="screen">
+  <div class="header">
+    <div class="header-left">
+      <button class="back-btn" onclick="showScreen('panel')">← Wróć</button>
+    </div>
+    <div class="header-title">SO – Palety na ziemi</div>
+    <div class="header-right"></div>
+  </div>
+
+  <div class="content">
+    <div class="section-title">Nazwa towaru</div>
+    <input id="so-name" type="text" placeholder="np. Masło ekstra 83%" 
+      style="width:100%; height:42px; background:#1a1a1a; border:0.5px solid #333; border-radius:10px; color:#e0e0e0; padding:0 12px; font-size:15px; margin-bottom:12px;">
+
+    <div class="section-title">Data przydatności</div>
+    <input id="so-date" type="date" 
+      style="width:100%; height:42px; background:#1a1a1a; border:0.5px solid #333; border-radius:10px; color:#e0e0e0; padding:0 12px; font-size:15px; margin-bottom:12px;">
+
+    <div class="section-title">Ilość EP</div>
+    <input id="so-ep" type="number" min="1" placeholder="np. 12" 
+      style="width:100%; height:42px; background:#1a1a1a; border:0.5px solid #333; border-radius:10px; color:#e0e0e0; padding:0 12px; font-size:15px; margin-bottom:12px;">
+
+    <div class="section-title">Lokalizacja</div>
+    <input id="so-loc" type="text" placeholder="np. przy bramie, strefa B..." 
+      style="width:100%; height:42px; background:#1a1a1a; border:0.5px solid #333; border-radius:10px; color:#e0e0e0; padding:0 12px; font-size:15px; margin-bottom:14px;">
+
+    <div class="btn-row" style="flex-wrap:wrap; margin-bottom:16px;">
+      <button class="btn btn-primary" onclick="addSo()">Dodaj</button>
+      <button class="btn btn-secondary" id="btn-so-undo" onclick="undoSo()" disabled style="background:#1a1a2a; color:#aaa; border:0.5px solid #333;">↩ Cofnij</button>
+      <button class="btn btn-secondary" onclick="copySo()" style="background:#0d3a2a; color:#4cd9aa; border:0.5px solid #1a5c3a;">📋 Kopiuj</button>
+      <button class="btn btn-danger" onclick="clearSo()">Reset</button>
+    </div>
+
+    <div id="so-list">
+      <div class="empty">Brak pozycji SO</div>
+    </div>
+  </div>
+</div>
+
+<!-- GRAFIK -->
+<div id="screen-grafik" class="screen">
+  <div class="header">
+    <div class="header-left">
+      <button class="back-btn" onclick="showScreen('panel')">← Wróć</button>
+    </div>
+    <div class="header-title">Grafik</div>
+    <div class="header-right"></div>
+  </div>
+
+  <div class="content">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+      <button class="btn btn-secondary" onclick="changeMonth(-1)" style="background:#1a1a2a; color:#aaa; border:0.5px solid #333; flex:0 0 50px;">‹</button>
+      <div id="grafik-month-label" style="font-size:16px; font-weight:600; color:#e0e0e0;"></div>
+      <button class="btn btn-secondary" onclick="changeMonth(1)" style="background:#1a1a2a; color:#aaa; border:0.5px solid #333; flex:0 0 50px;">›</button>
+    </div>
+
+    <div id="grafik-summary" style="display:flex; gap:8px; margin-bottom:14px; font-size:12px;"></div>
+
+    <div class="btn-row" style="flex-wrap:wrap; margin-bottom:14px;">
+      <button class="btn btn-secondary" id="btn-grafik-undo" onclick="undoGrafik()" disabled style="background:#1a1a2a; color:#aaa; border:0.5px solid #333; flex:1;">↩ Cofnij</button>
+      <button class="btn btn-danger" onclick="clearGrafik()" style="flex:1;">Reset</button>
+    </div>
+
+    <div style="display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:6px; font-size:11px; color:#666; text-align:center;">
+      <div>Pn</div><div>Wt</div><div>Śr</div><div>Cz</div><div>Pt</div><div>So</div><div>Nd</div>
+    </div>
+    <div id="grafik-calendar" style="display:grid; grid-template-columns:repeat(7,1fr); gap:4px;"></div>
+
+    <div style="margin-top:16px; font-size:12px; color:#888;">
+      <div style="margin-bottom:4px;"><span style="color:#4cd966;">●</span> Praca &nbsp; <span style="color:#888;">●</span> Wolne &nbsp; <span style="color:#4da3ff;">●</span> Urlop</div>
+      <div>Kliknij dzień, żeby zmienić status</div>
+    </div>
+  </div>
+</div>
+
+<!-- URLOP -->
+<div id="screen-urlop" class="screen">
+  <div class="header">
+    <div class="header-left">
+      <button class="back-btn" onclick="showScreen('panel')">← Wróć</button>
+    </div>
+    <div class="header-title">Urlop</div>
+    <div class="header-right"></div>
+  </div>
+
+  <div class="content">
+    <div id="urlop-summary" style="background:#1c1c1c; border-radius:14px; padding:14px; border:0.5px solid #2a2a2a; margin-bottom:16px; font-size:14px;"></div>
+
+    <div class="section-title">Rodzaj</div>
+    <div style="display:flex; gap:8px; margin-bottom:12px;">
+      <button id="urlop-type-urlop" class="btn btn-primary" style="flex:1;" onclick="setUrlopType('urlop')">Urlop</button>
+      <button id="urlop-type-opieka" class="btn btn-secondary" style="flex:1; background:#1a1a2a; color:#aaa; border:0.5px solid #333;" onclick="setUrlopType('opieka')">Opieka</button>
+    </div>
+
+    <div class="section-title">Od</div>
+    <input id="urlop-from" type="date" 
+      style="width:100%; height:42px; background:#1a1a1a; border:0.5px solid #333; border-radius:10px; color:#e0e0e0; padding:0 12px; font-size:15px; margin-bottom:12px;">
+
+    <div class="section-title">Do</div>
+    <input id="urlop-to" type="date" 
+      style="width:100%; height:42px; background:#1a1a1a; border:0.5px solid #333; border-radius:10px; color:#e0e0e0; padding:0 12px; font-size:15px; margin-bottom:14px;">
+
+    <div class="btn-row" style="flex-wrap:wrap; margin-bottom:16px;">
+      <button class="btn btn-primary" onclick="addUrlop()">Dodaj</button>
+      <button class="btn btn-secondary" id="btn-urlop-undo" onclick="undoUrlop()" disabled style="background:#1a1a2a; color:#aaa; border:0.5px solid #333;">↩ Cofnij</button>
+      <button class="btn btn-danger" onclick="clearUrlop()">Reset</button>
+    </div>
+
+    <div id="urlop-list">
+      <div class="empty">Brak wpisanych urlopów</div>
+    </div>
+  </div>
+</div>
+
+<!-- ZADANIA – LISTA -->
+<div id="screen-zadania" class="screen">
+  <div class="header">
+    <div class="header-left">
+      <button class="back-btn" onclick="showScreen('panel')">← Wróć</button>
+    </div>
+    <div class="header-title">Zadania</div>
+    <div class="header-right"></div>
+  </div>
+
+  <div class="content">
+    <div class="section-title">Tytuł</div>
+    <input id="zad-title" type="text" placeholder="np. Sprawdzić dostawę" 
+      style="width:100%; height:42px; background:#1a1a1a; border:0.5px solid #333; border-radius:10px; color:#e0e0e0; padding:0 12px; font-size:15px; margin-bottom:12px;">
+
+    <div class="section-title">Treść</div>
+    <textarea id="zad-content" placeholder="Szczegóły zadania..." style="height:100px; margin-bottom:14px;"></textarea>
+
+    <div class="btn-row" style="flex-wrap:wrap; margin-bottom:16px;">
+      <button class="btn btn-primary" onclick="addZad()">Dodaj</button>
+      <button class="btn btn-secondary" id="btn-zad-undo" onclick="undoZad()" disabled style="background:#1a1a2a; color:#aaa; border:0.5px solid #333;">↩ Cofnij</button>
+      <button class="btn btn-danger" onclick="clearZad()">Reset</button>
+    </div>
+
+    <div id="zad-list">
+      <div class="empty">Brak zadań</div>
+    </div>
+  </div>
+</div>
+
+<!-- ZADANIA – SZCZEGÓŁY -->
+<div id="screen-zad-detail" class="screen">
+  <div class="header">
+    <div class="header-left">
+      <button class="back-btn" onclick="showScreen('zadania')">← Wróć</button>
+    </div>
+    <div class="header-title" id="zad-detail-title">Zadanie</div>
+    <div class="header-right"></div>
+  </div>
+
+  <div class="content">
+    <div id="zad-detail-content" style="background:#1c1c1c; border-radius:14px; padding:16px; border:0.5px solid #2a2a2a; min-height:120px; font-size:15px; line-height:1.5; white-space:pre-wrap; margin-bottom:20px;"></div>
+
+    <div style="display:flex; gap:12px;">
+      <button class="btn" onclick="markZadDone()" style="flex:1; background:#0d3a1a; color:#4cd966; border:0.5px solid #1a5c2a; height:48px; font-size:16px;">✅ Zrobione</button>
+      <button class="btn" onclick="markZadCancel()" style="flex:1; background:#2a1010; color:#ff5555; border:0.5px solid #5a2020; height:48px; font-size:16px;">❌ Anuluj</button>
+    </div>
+  </div>
+</div>
+
+<!-- SZYBKIE NOTATKI -->
+<div id="screen-notatki" class="screen">
+  <div class="header">
+    <div class="header-left">
+      <button class="back-btn" onclick="showScreen('panel')">← Wróć</button>
+    </div>
+    <div class="header-title">Szybkie notatki</div>
+    <div class="header-right"></div>
+  </div>
+
+  <div class="content">
+    <textarea id="notatki-area" placeholder="Pisz tutaj..." 
+      style="width:100%; height:55vh; background:#1a1a1a; border:0.5px solid #333; border-radius:14px; color:#e0e0e0; padding:16px; font-size:15px; line-height:1.5; resize:none;"
+      oninput="saveNotatki()"></textarea>
+    <div style="margin-top:10px; font-size:12px; color:#666; text-align:center;">Zapisuje się automatycznie</div>
+    <div style="margin-top:14px;">
+      <button class="btn btn-danger" onclick="clearNotatki()" style="width:100%;">Wyczyść notatki</button>
+    </div>
+  </div>
+</div>
+
+<!-- BACKUP -->
+<div id="screen-backup" class="screen">
+  <div class="header">
+    <div class="header-left">
+      <button class="back-btn" onclick="showScreen('panel')">← Wróć</button>
+    </div>
+    <div class="header-title">Backup</div>
+    <div class="header-right"></div>
+  </div>
+
+  <div class="content">
+    <div class="section-title">Eksport – skopiuj i zapisz w bezpiecznym miejscu</div>
+    <textarea id="backup-export" readonly
+      style="width:100%; height:180px; background:#111; border:0.5px solid #333; border-radius:12px; color:#aaa; padding:12px; font-size:11px; font-family:monospace; resize:none; margin-bottom:10px;"></textarea>
+    <button class="btn btn-primary" onclick="copyBackup()" style="width:100%; margin-bottom:24px;">📋 Kopiuj backup</button>
+
+    <div class="section-title">Import – wklej wcześniej skopiowany backup</div>
+    <textarea id="backup-import" placeholder="Wklej tutaj dane backupu..."
+      style="width:100%; height:120px; background:#1a1a1a; border:0.5px solid #333; border-radius:12px; color:#e0e0e0; padding:12px; font-size:11px; font-family:monospace; resize:none; margin-bottom:10px;"></textarea>
+    <button class="btn btn-primary" onclick="restoreBackup()" style="width:100%; background:#0d3a1a; border:0.5px solid #1a5c2a;">Przywróć z backupu</button>
+  </div>
+</div>
+
+<script>
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  if (name === 'przydzial') { renderList(); updatePrzydzialUndoBtn(); }
+  if (name === 'wolne') { renderWolne(); updateWolneUndoBtn(); }
+  if (name === 'puste') initPuste();
+  if (name === 'zablokowane') initZab();
+  if (name === 'so') initSo();
+  if (name === 'grafik') initGrafik();
+  if (name === 'urlop') initUrlop();
+  if (name === 'zadania') initZad();
+  if (name === 'notatki') initNotatki();
+  if (name === 'backup') initBackup();
+}
+
+let items = [];
+let przydzialHistory = [];
+
+function saveData() {
+  try {
+    localStorage.setItem('przydzial_szefowej', JSON.stringify(items));
+    localStorage.setItem('przydzial_history', JSON.stringify(przydzialHistory));
+  } catch(e) {}
+  updatePrzydzialUndoBtn();
+}
+
+function loadData() {
+  try {
+    const raw = localStorage.getItem('przydzial_szefowej');
+    if (raw) items = JSON.parse(raw);
+    const hist = localStorage.getItem('przydzial_history');
+    if (hist) przydzialHistory = JSON.parse(hist);
+  } catch(e) { items = []; przydzialHistory = []; }
+  updatePrzydzialUndoBtn();
+}
+
+function updatePrzydzialUndoBtn() {
+  const btn = document.getElementById('btn-przydzial-undo');
+  if (btn) btn.disabled = przydzialHistory.length === 0;
+}
+
+function loadList() {
+  const raw = document.getElementById('input-list').value.trim();
+  if (!raw) return;
+
+  const lines = raw.split('\n').filter(l => l.trim());
+  const parsed = [];
+
+  lines.forEach(line => {
+    // Usuń numerację na początku (1. 2. 3. itd.)
+    line = line.replace(/^\d+\.\s*/, '').trim();
+
+    // Rozdziel po |
+    let parts = line.split('|').map(p => p.trim()).filter(p => p !== '');
+
+    if (parts.length >= 5) {
+      const date = parts[0];
+      const gniazdo = parts[1];
+      const art = parts[2];
+      // EP jest na końcu (może mieć "EP")
+      let epRaw = parts[parts.length - 1];
+      let ep = parseInt(epRaw.replace(/[^\d]/g, '')) || epRaw;
+      // Nazwa to wszystko pomiędzy art a EP
+      const name = parts.slice(3, parts.length - 1).join(' ');
+
+      parsed.push({
+        date: date,
+        gniazdo: gniazdo,
+        art: art,
+        name: name,
+        ep: ep
+      });
+    }
+  });
+
+  if (parsed.length > 0) {
+    przydzialHistory.push(JSON.parse(JSON.stringify(items)));
+    if (przydzialHistory.length > 10) przydzialHistory.shift();
+    items = parsed;
+    przydzialSelected = {};
+    document.getElementById('input-list').value = '';
+    saveData();
+    renderList();
+  } else {
+    alert('Nie udało się odczytać listy.\nSprawdź format i spróbuj ponownie.');
+  }
+}
+
+function clearList() {
+  przydzialHistory.push(JSON.parse(JSON.stringify(items)));
+  if (przydzialHistory.length > 10) przydzialHistory.shift();
+  items = [];
+  saveData();
+  renderList();
+}
+
+function undoPrzydzial() {
+  if (przydzialHistory.length === 0) return;
+  items = przydzialHistory.pop();
+  saveData();
+  renderList();
+  alert('Cofnięto ostatnią operację');
+}
+
+let przydzialSelected = {}; // index -> true
+
+function togglePrzydzialSelect(idx) {
+  przydzialSelected[idx] = !przydzialSelected[idx];
+  renderList();
+}
+
+function renderList() {
+  const container = document.getElementById('list-container');
+  if (items.length === 0) {
+    container.innerHTML = '<div class="empty">Brak wczytanej listy</div>';
+    przydzialSelected = {};
+    return;
+  }
+
+  // Kolory dla dat
+  const colors = [
+    '#4da3ff', '#4cd966', '#ff9f43', '#a55eea',
+    '#ff6b6b', '#20c997', '#feca57', '#ff9ff3'
+  ];
+
+  const dateColor = {};
+  let colorIndex = 0;
+  items.forEach(item => {
+    if (item.date && !dateColor[item.date]) {
+      dateColor[item.date] = colors[colorIndex % colors.length];
+      colorIndex++;
+    }
+  });
+
+  const selectedCount = Object.values(przydzialSelected).filter(Boolean).length;
+  let html = `<div class="list-header">
+    <div class="list-count">${items.length} pozycji${selectedCount ? ' · zaznaczono ' + selectedCount : ''}</div>
+  </div>
+  <div style="font-size:12px; color:#666; margin-bottom:10px;">Tap na kafelek = zaznacz do kopiowania</div>`;
+
+  items.forEach((item, idx) => {
+    const borderColor = dateColor[item.date] || '#444';
+    const isSel = !!przydzialSelected[idx];
+    const bg = isSel ? '#0a1a2a' : '#1c1c1c';
+    const borderExtra = isSel ? 'border: 2px solid #4da3ff;' : 'border: 0.5px solid #2a2a2a;';
+    html += `
+      <div class="item" onclick="togglePrzydzialSelect(${idx})"
+        style="border-left: 5px solid ${borderColor}; background:${bg}; ${borderExtra} cursor:pointer;">
+        <div class="item-top">
+          <div class="item-name">${isSel ? '✓ ' : ''}${item.name}</div>
+          <div class="item-ep">${item.ep} EP</div>
+        </div>
+        <div class="item-meta">
+          <span class="meta-badge meta-gn">${item.gniazdo}</span>
+          <span class="meta-badge meta-art">${item.art}</span>
+          ${item.date ? `<span class="meta-badge meta-date" style="color:${borderColor}">${item.date}</span>` : ''}
+        </div>
+      </div>`;
+  });
+  container.innerHTML = html;
+}
+
+loadData();
+
+// ===== WOLNE GNIAZDA =====
+let wolne = [];
+let wolneHistory = [];
+
+function loadWolne() {
+  try {
+    const raw = localStorage.getItem('wolne_gniazda');
+    if (raw) wolne = JSON.parse(raw);
+    const hist = localStorage.getItem('wolne_history');
+    if (hist) wolneHistory = JSON.parse(hist);
+  } catch(e) { wolne = []; wolneHistory = []; }
+  updateWolneUndoBtn();
+}
+
+function saveWolne() {
+  try {
+    localStorage.setItem('wolne_gniazda', JSON.stringify(wolne));
+    localStorage.setItem('wolne_history', JSON.stringify(wolneHistory));
+  } catch(e) {}
+  updateWolneUndoBtn();
+}
+
+function updateWolneUndoBtn() {
+  const btn = document.getElementById('btn-wolne-undo');
+  if (btn) btn.disabled = wolneHistory.length === 0;
+}
+
+function addWolne() {
+  const input = document.getElementById('wolne-input');
+  const val = input.value.trim();
+  if (!val) return;
+
+  if (wolne.includes(val)) {
+    alert('To gniazdo już jest na liście');
+    return;
+  }
+
+  wolneHistory.push([...wolne]);
+  if (wolneHistory.length > 20) wolneHistory.shift();
+
+  wolne.push(val);
+  wolne.sort();
+  input.value = '';
+  saveWolne();
+  renderWolne();
+}
+
+function removeWolne(index) {
+  wolneHistory.push([...wolne]);
+  if (wolneHistory.length > 20) wolneHistory.shift();
+
+  wolne.splice(index, 1);
+  saveWolne();
+  renderWolne();
+}
+
+function clearWolne() {
+  wolneHistory.push([...wolne]);
+  if (wolneHistory.length > 20) wolneHistory.shift();
+  wolne = [];
+  saveWolne();
+  renderWolne();
+}
+
+function undoWolne() {
+  if (wolneHistory.length === 0) return;
+  wolne = wolneHistory.pop();
+  saveWolne();
+  renderWolne();
+}
+
+function renderWolne() {
+  const container = document.getElementById('wolne-list');
+  if (wolne.length === 0) {
+    container.innerHTML = '<div class="empty">Brak zapisanych gniazd</div>';
+    return;
+  }
+
+  let html = `<div class="list-header"><div class="list-count">${wolne.length} gniazd</div></div>`;
+  wolne.forEach((g, i) => {
+    html += `
+      <div class="item" style="display:flex; justify-content:space-between; align-items:center; padding:14px;">
+        <div class="item-name" style="margin:0; font-size:16px;">${g}</div>
+        <button type="button" onclick="removeWolne(${i})" 
+          style="background:#2a1010; border:0.5px solid #5a2020; color:#ff5555; font-size:14px; font-weight:600; 
+          cursor:pointer; padding:6px 12px; border-radius:8px;">Usuń</button>
+      </div>`;
+  });
+  container.innerHTML = html;
+}
+
+loadWolne();
+
+// ===== PUSTE GNIAZDA =====
+let pusteState = {
+  date: null,
+  items: {}   // { "35-003": "2026-01-01", ... }  firstSeen date
+};
+let pusteHistory = []; // stos do cofania
+
+function loadPuste() {
+  try {
+    const raw = localStorage.getItem('puste_gniazda');
+    if (raw) pusteState = JSON.parse(raw);
+    const hist = localStorage.getItem('puste_history');
+    if (hist) pusteHistory = JSON.parse(hist);
+  } catch(e) {
+    pusteState = { date: null, items: {} };
+    pusteHistory = [];
+  }
+  updatePusteUndoBtn();
+}
+
+function savePuste() {
+  try {
+    localStorage.setItem('puste_gniazda', JSON.stringify(pusteState));
+    localStorage.setItem('puste_history', JSON.stringify(pusteHistory));
+  } catch(e) {}
+  updatePusteUndoBtn();
+}
+
+function updatePusteUndoBtn() {
+  const btn = document.getElementById('btn-puste-undo');
+  if (btn) btn.disabled = pusteHistory.length === 0;
+}
+
+function initPuste() {
+  // Ustaw domyślną datę na dzisiaj
+  const today = new Date().toISOString().slice(0, 10);
+  document.getElementById('puste-date').value = today;
+  renderPuste();
+  updatePusteUndoBtn();
+}
+
+function daysBetween(date1, date2) {
+  const d1 = new Date(date1);
+  const d2 = new Date(date2);
+  const diff = Math.abs(d2 - d1);
+  return Math.floor(diff / (1000 * 60 * 60 * 24));
+}
+
+function getStatus(days) {
+  if (days >= 14) return { emoji: '🔴', label: 'Czerwony', color: '#ff5555' };
+  if (days >= 7)  return { emoji: '🟡', label: 'Żółty', color: '#f0a500' };
+  return { emoji: '⚪', label: 'Normalny', color: '#888' };
+}
+
+function formatDate(iso) {
+  if (!iso) return '—';
+  const [y, m, d] = iso.split('-');
+  return `${d}.${m}.${y}`;
+}
+
+function processPuste() {
+  const dateInput = document.getElementById('puste-date').value;
+  if (!dateInput) {
+    alert('Podaj datę kontroli');
+    return;
+  }
+
+  const raw = document.getElementById('puste-input').value.trim();
+  if (!raw) {
+    alert('Wklej listę gniazd');
+    return;
+  }
+
+  // Parsuj listę – jedno gniazdo na linię lub po przecinkach/spacjach
+  const lines = raw.split(/[\n,;]+/).map(l => l.trim()).filter(l => l);
+  const newList = [...new Set(lines)]; // unikalne
+
+  if (newList.length === 0) {
+    alert('Nie znaleziono gniazd');
+    return;
+  }
+
+  const prevItems = pusteState.items || {};
+  const newItems = {};
+  const repeating = [];
+  const newOnes = [];
+  const removed = [];
+
+  // Przetwarzanie nowych / powtarzających się
+  newList.forEach(g => {
+    if (prevItems[g]) {
+      // Powtarza się – zachowujemy firstSeen
+      newItems[g] = prevItems[g];
+      const days = daysBetween(prevItems[g], dateInput);
+      repeating.push({ gniazdo: g, firstSeen: prevItems[g], days });
+    } else {
+      // Nowe
+      newItems[g] = dateInput;
+      newOnes.push({ gniazdo: g, firstSeen: dateInput, days: 0 });
+    }
+  });
+
+  // Usunięte
+  Object.keys(prevItems).forEach(g => {
+    if (!newItems[g]) {
+      removed.push(g);
+    }
+  });
+
+  // Zapisz stan do historii (przed zmianą)
+  pusteHistory.push(JSON.parse(JSON.stringify(pusteState)));
+  if (pusteHistory.length > 10) pusteHistory.shift(); // max 10 cofnięć
+
+  // Zapisz nowy stan
+  pusteState = {
+    date: dateInput,
+    items: newItems
+  };
+  savePuste();
+
+  // Wyczyść pole
+  document.getElementById('puste-input').value = '';
+
+  // Render wyników
+  renderPusteResults(repeating, newOnes, removed, dateInput);
+}
+
+function renderPusteResults(repeating, newOnes, removed, dateInput) {
+  const container = document.getElementById('puste-results');
+  const allCurrent = [...repeating, ...newOnes];
+
+  // Sortuj po dniach malejąco (najstarsze pierwsze)
+  allCurrent.sort((a, b) => b.days - a.days);
+
+  let html = '';
+
+  // === AKTUALNA LISTA ===
+  html += `<div class="section-title" style="margin-top:8px;">📋 AKTUALNA LISTA (${allCurrent.length})</div>`;
+  if (allCurrent.length === 0) {
+    html += `<div class="empty" style="padding:20px;">Brak gniazd</div>`;
+  } else {
+    allCurrent.forEach(item => {
+      const st = getStatus(item.days);
+      html += `
+        <div class="item" style="border-left: 5px solid ${st.color}">
+          <div class="item-top">
+            <div class="item-name">${item.gniazdo}</div>
+            <div style="font-size:18px;">${st.emoji}</div>
+          </div>
+          <div class="item-meta">
+            <span class="meta-badge">Od: ${formatDate(item.firstSeen)}</span>
+            <span class="meta-badge">${item.days} dni</span>
+            <span class="meta-badge" style="color:${st.color}">${st.label}</span>
+          </div>
+        </div>`;
+    });
+  }
+
+  // === POWTARZAJĄCE SIĘ ===
+  if (repeating.length > 0) {
+    html += `<div class="section-title" style="margin-top:18px;">🔁 POWTARZAJĄCE SIĘ (${repeating.length})</div>`;
+    repeating.forEach(item => {
+      const st = getStatus(item.days);
+      html += `<div style="font-size:13px; color:#ccc; padding:4px 0;">${item.gniazdo} — ${item.days} dni ${st.emoji}</div>`;
+    });
+  }
+
+  // === NOWE ===
+  if (newOnes.length > 0) {
+    html += `<div class="section-title" style="margin-top:18px;">➕ NOWE (${newOnes.length})</div>`;
+    newOnes.forEach(item => {
+      html += `<div style="font-size:13px; color:#ccc; padding:4px 0;">${item.gniazdo}</div>`;
+    });
+  }
+
+  // === USUNIĘTE ===
+  if (removed.length > 0) {
+    html += `<div class="section-title" style="margin-top:18px;">❌ USUNIĘTE (${removed.length})</div>`;
+    removed.forEach(g => {
+      html += `<div style="font-size:13px; color:#ff5555; padding:4px 0;">${g}</div>`;
+    });
+  }
+
+  // === PODSUMOWANIE ===
+  const white = allCurrent.filter(i => i.days < 7).length;
+  const yellow = allCurrent.filter(i => i.days >= 7 && i.days < 14).length;
+  const red = allCurrent.filter(i => i.days >= 14).length;
+  const prevCount = repeating.length + removed.length; // poprzedni stan
+
+  html += `
+    <div class="section-title" style="margin-top:20px;">📊 PODSUMOWANIE</div>
+    <div style="background:#1c1c1c; border-radius:12px; padding:14px; border:0.5px solid #2a2a2a;">
+      <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+        <span>Poprzednio</span><strong>${prevCount}</strong>
+      </div>
+      <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+        <span>Obecnie</span><strong>${allCurrent.length}</strong>
+      </div>
+      <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+        <span>⚪ Normalne (0–6 dni)</span><strong>${white}</strong>
+      </div>
+      <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+        <span>🟡 Do obserwacji (7–13)</span><strong style="color:#f0a500">${yellow}</strong>
+      </div>
+      <div style="display:flex; justify-content:space-between;">
+        <span>🔴 Do zgłoszenia (14+)</span><strong style="color:#ff5555">${red}</strong>
+      </div>
+    </div>
+  `;
+
+  container.innerHTML = html;
+}
+
+function renderPuste() {
+  const container = document.getElementById('puste-results');
+  if (!pusteState.date || Object.keys(pusteState.items).length === 0) {
+    container.innerHTML = `<div class="empty">Brak zapisanych danych.<br>Wgraj pierwszą listę.</div>`;
+    return;
+  }
+
+  // Pokaż aktualny stan bez porównywania
+  const items = Object.entries(pusteState.items).map(([g, firstSeen]) => {
+    const days = daysBetween(firstSeen, pusteState.date);
+    return { gniazdo: g, firstSeen, days };
+  });
+  items.sort((a, b) => b.days - a.days);
+
+  let html = `<div class="section-title">Ostatni stan z ${formatDate(pusteState.date)}</div>`;
+  items.forEach(item => {
+    const st = getStatus(item.days);
+    html += `
+      <div class="item" style="border-left: 5px solid ${st.color}">
+        <div class="item-top">
+          <div class="item-name">${item.gniazdo}</div>
+          <div style="font-size:18px;">${st.emoji}</div>
+        </div>
+        <div class="item-meta">
+          <span class="meta-badge">Od: ${formatDate(item.firstSeen)}</span>
+          <span class="meta-badge">${item.days} dni</span>
+          <span class="meta-badge" style="color:${st.color}">${st.label}</span>
+        </div>
+      </div>`;
+  });
+
+  const white = items.filter(i => i.days < 7).length;
+  const yellow = items.filter(i => i.days >= 7 && i.days < 14).length;
+  const red = items.filter(i => i.days >= 14).length;
+
+  html += `
+    <div class="section-title" style="margin-top:16px;">📊 PODSUMOWANIE</div>
+    <div style="background:#1c1c1c; border-radius:12px; padding:14px; border:0.5px solid #2a2a2a; font-size:13px;">
+      <div>⚪ ${white} &nbsp;&nbsp; 🟡 ${yellow} &nbsp;&nbsp; 🔴 ${red}</div>
+    </div>
+  `;
+  container.innerHTML = html;
+}
+
+function clearPuste() {
+  // Zapisz do historii przed resetem
+  pusteHistory.push(JSON.parse(JSON.stringify(pusteState)));
+  if (pusteHistory.length > 10) pusteHistory.shift();
+
+  pusteState = { date: null, items: {} };
+  savePuste();
+  document.getElementById('puste-input').value = '';
+  document.getElementById('puste-results').innerHTML = '<div class="empty">Wyczyszczono</div>';
+}
+
+function undoPuste() {
+  if (pusteHistory.length === 0) return;
+  pusteState = pusteHistory.pop();
+  savePuste();
+  renderPuste();
+  alert('Cofnięto ostatnią operację');
+}
+
+loadPuste();
+
+// ===== ZABLOKOWANE PALETY =====
+let zabList = [];
+let zabHistory = [];
+let zabIdCounter = 1;
+
+function loadZab() {
+  try {
+    const raw = localStorage.getItem('zablokowane_palety');
+    if (raw) {
+      const data = JSON.parse(raw);
+      zabList = data.list || [];
+      zabIdCounter = data.idCounter || 1;
+    }
+    const hist = localStorage.getItem('zablokowane_history');
+    if (hist) zabHistory = JSON.parse(hist);
+  } catch(e) {
+    zabList = [];
+    zabHistory = [];
+  }
+  updateZabUndoBtn();
+}
+
+function saveZab() {
+  try {
+    localStorage.setItem('zablokowane_palety', JSON.stringify({ list: zabList, idCounter: zabIdCounter }));
+    localStorage.setItem('zablokowane_history', JSON.stringify(zabHistory));
+  } catch(e) {}
+  updateZabUndoBtn();
+}
+
+function updateZabUndoBtn() {
+  const btn = document.getElementById('btn-zab-undo');
+  if (btn) btn.disabled = zabHistory.length === 0;
+}
+
+function daysLeft(expiryIso) {
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const exp = new Date(expiryIso);
+  exp.setHours(0,0,0,0);
+  const diff = Math.floor((exp - today) / (1000*60*60*24));
+  return diff;
+}
+
+function zabStatus(days) {
+  if (days < 0)  return { emoji: '⛔', label: 'Przeterminowane', color: '#ff2222' };
+  if (days < 7)  return { emoji: '🔴', label: days + ' dni', color: '#ff5555' };
+  if (days < 15) return { emoji: '🟡', label: days + ' dni', color: '#f0a500' };
+  return { emoji: '🟢', label: days + ' dni', color: '#4cd966' };
+}
+
+function formatDatePL(iso) {
+  if (!iso) return '—';
+  const [y,m,d] = iso.split('-');
+  return d + '.' + m + '.' + y;
+}
+
+function initZab() {
+  renderZab();
+  updateZabUndoBtn();
+  // Przypomnienie przy otwarciu
+  checkZabReminders();
+}
+
+function checkZabReminders() {
+  const urgent = zabList.filter(item => {
+    const d = daysLeft(item.expiry);
+    return d >= 0 && d < 7;
+  });
+  const expired = zabList.filter(item => daysLeft(item.expiry) < 0);
+
+  if (expired.length > 0 || urgent.length > 0) {
+    let msg = '';
+    if (expired.length > 0) msg += `⛔ ${expired.length} pozycji PRZETERMINOWANYCH\n`;
+    if (urgent.length > 0) msg += `🔴 ${urgent.length} pozycji kończy się w ciągu 7 dni`;
+    // Mały delay żeby ekran zdążył się pokazać
+    setTimeout(() => alert(msg), 300);
+  }
+}
+
+function addZab() {
+  const name = document.getElementById('zab-name').value.trim();
+  const date = document.getElementById('zab-date').value;
+  const loc  = document.getElementById('zab-loc').value.trim();
+
+  if (!name) { alert('Podaj nazwę towaru'); return; }
+  if (!date) { alert('Podaj datę przydatności'); return; }
+
+  zabHistory.push(JSON.parse(JSON.stringify(zabList)));
+  if (zabHistory.length > 20) zabHistory.shift();
+
+  zabList.push({
+    id: zabIdCounter++,
+    name,
+    expiry: date,
+    location: loc || '—'
+  });
+
+  document.getElementById('zab-name').value = '';
+  document.getElementById('zab-date').value = '';
+  document.getElementById('zab-loc').value = '';
+
+  saveZab();
+  renderZab();
+}
+
+function removeZab(id) {
+  zabHistory.push(JSON.parse(JSON.stringify(zabList)));
+  if (zabHistory.length > 20) zabHistory.shift();
+
+  zabList = zabList.filter(item => item.id !== id);
+  saveZab();
+  renderZab();
+}
+
+function clearZab() {
+  zabHistory.push(JSON.parse(JSON.stringify(zabList)));
+  if (zabHistory.length > 20) zabHistory.shift();
+  zabList = [];
+  saveZab();
+  renderZab();
+}
+
+function undoZab() {
+  if (zabHistory.length === 0) return;
+  zabList = zabHistory.pop();
+  saveZab();
+  renderZab();
+}
+
+function renderZab() {
+  const container = document.getElementById('zab-list');
+  if (zabList.length === 0) {
+    container.innerHTML = '<div class="empty">Brak zablokowanych pozycji</div>';
+    return;
+  }
+
+  // Sortuj od najbliższego terminu
+  const sorted = [...zabList].sort((a, b) => daysLeft(a.expiry) - daysLeft(b.expiry));
+
+  let html = `<div class="list-header"><div class="list-count">${sorted.length} pozycji</div></div>`;
+
+  sorted.forEach(item => {
+    const d = daysLeft(item.expiry);
+    const st = zabStatus(d);
+    html += `
+      <div class="item" style="border-left: 5px solid ${st.color}">
+        <div class="item-top">
+          <div class="item-name">${item.name}</div>
+          <div style="font-size:15px; font-weight:700; color:${st.color}; white-space:nowrap;">
+            ${st.emoji} ${st.label}
+          </div>
+        </div>
+        <div class="item-meta">
+          <span class="meta-badge">📅 ${formatDatePL(item.expiry)}</span>
+          <span class="meta-badge">📍 ${item.location}</span>
+        </div>
+        <div style="margin-top:8px; text-align:right;">
+          <button type="button" onclick="removeZab(${item.id})"
+            style="background:#2a1010; border:0.5px solid #5a2020; color:#ff5555; font-size:13px; font-weight:600;
+            cursor:pointer; padding:5px 12px; border-radius:8px;">Usuń</button>
+        </div>
+      </div>`;
+  });
+
+  container.innerHTML = html;
+}
+
+loadZab();
+
+// ===== SO – Palety na ziemi =====
+let soList = [];
+let soHistory = [];
+let soIdCounter = 1;
+
+function loadSo() {
+  try {
+    const raw = localStorage.getItem('so_palety');
+    if (raw) {
+      const data = JSON.parse(raw);
+      soList = data.list || [];
+      soIdCounter = data.idCounter || 1;
+    }
+    const hist = localStorage.getItem('so_history');
+    if (hist) soHistory = JSON.parse(hist);
+  } catch(e) {
+    soList = [];
+    soHistory = [];
+  }
+  updateSoUndoBtn();
+}
+
+function saveSo() {
+  try {
+    localStorage.setItem('so_palety', JSON.stringify({ list: soList, idCounter: soIdCounter }));
+    localStorage.setItem('so_history', JSON.stringify(soHistory));
+  } catch(e) {}
+  updateSoUndoBtn();
+}
+
+function updateSoUndoBtn() {
+  const btn = document.getElementById('btn-so-undo');
+  if (btn) btn.disabled = soHistory.length === 0;
+}
+
+function initSo() {
+  renderSo();
+  updateSoUndoBtn();
+}
+
+function addSo() {
+  const name = document.getElementById('so-name').value.trim();
+  const date = document.getElementById('so-date').value;
+  const ep   = document.getElementById('so-ep').value;
+  const loc  = document.getElementById('so-loc').value.trim();
+
+  if (!name) { alert('Podaj nazwę towaru'); return; }
+
+  soHistory.push(JSON.parse(JSON.stringify(soList)));
+  if (soHistory.length > 20) soHistory.shift();
+
+  soList.push({
+    id: soIdCounter++,
+    name,
+    expiry: date || '',
+    ep: ep || '—',
+    location: loc || '—'
+  });
+
+  document.getElementById('so-name').value = '';
+  document.getElementById('so-date').value = '';
+  document.getElementById('so-ep').value = '';
+  document.getElementById('so-loc').value = '';
+
+  saveSo();
+  renderSo();
+}
+
+function removeSo(id) {
+  soHistory.push(JSON.parse(JSON.stringify(soList)));
+  if (soHistory.length > 20) soHistory.shift();
+  soList = soList.filter(item => item.id !== id);
+  saveSo();
+  renderSo();
+}
+
+function clearSo() {
+  soHistory.push(JSON.parse(JSON.stringify(soList)));
+  if (soHistory.length > 20) soHistory.shift();
+  soList = [];
+  saveSo();
+  renderSo();
+}
+
+function undoSo() {
+  if (soHistory.length === 0) return;
+  soList = soHistory.pop();
+  saveSo();
+  renderSo();
+}
+
+function formatDateSo(iso) {
+  if (!iso) return '—';
+  const [y,m,d] = iso.split('-');
+  return d + '.' + m + '.' + y;
+}
+
+function renderSo() {
+  const container = document.getElementById('so-list');
+  if (soList.length === 0) {
+    container.innerHTML = '<div class="empty">Brak pozycji SO</div>';
+    return;
+  }
+
+  let html = `<div class="list-header"><div class="list-count">${soList.length} pozycji</div></div>`;
+
+  soList.forEach(item => {
+    html += `
+      <div class="item">
+        <div class="item-top">
+          <div class="item-name">${item.name}</div>
+          <div class="item-ep">${item.ep} EP</div>
+        </div>
+        <div class="item-meta">
+          <span class="meta-badge">📅 ${formatDateSo(item.expiry)}</span>
+          <span class="meta-badge">📍 ${item.location}</span>
+        </div>
+        <div style="margin-top:8px; text-align:right;">
+          <button type="button" onclick="removeSo(${item.id})"
+            style="background:#2a1010; border:0.5px solid #5a2020; color:#ff5555; font-size:13px; font-weight:600;
+            cursor:pointer; padding:5px 12px; border-radius:8px;">Usuń</button>
+        </div>
+      </div>`;
+  });
+
+  container.innerHTML = html;
+}
+
+loadSo();
+
+// ===== GRAFIK =====
+let grafikData = {}; // { "2026-09-20": "praca" | "wolne" | "urlop" }
+let grafikHistory = [];
+let grafikCurrent = new Date();
+grafikCurrent.setDate(1); // pierwszy dzień miesiąca
+
+const STATUS_CYCLE = ['praca', 'wolne', 'urlop', null]; // null = brak
+const STATUS_COLORS = {
+  praca: '#4cd966',
+  wolne: '#555',
+  urlop: '#4da3ff'
+};
+const STATUS_LABELS = {
+  praca: 'Praca',
+  wolne: 'Wolne',
+  urlop: 'Urlop'
+};
+
+function loadGrafik() {
+  try {
+    const raw = localStorage.getItem('grafik_data');
+    if (raw) grafikData = JSON.parse(raw);
+    const hist = localStorage.getItem('grafik_history');
+    if (hist) grafikHistory = JSON.parse(hist);
+  } catch(e) {
+    grafikData = {};
+    grafikHistory = [];
+  }
+  updateGrafikUndoBtn();
+}
+
+function saveGrafik() {
+  try {
+    localStorage.setItem('grafik_data', JSON.stringify(grafikData));
+    localStorage.setItem('grafik_history', JSON.stringify(grafikHistory));
+  } catch(e) {}
+  updateGrafikUndoBtn();
+}
+
+function updateGrafikUndoBtn() {
+  const btn = document.getElementById('btn-grafik-undo');
+  if (btn) btn.disabled = grafikHistory.length === 0;
+}
+
+function initGrafik() {
+  renderGrafik();
+  updateGrafikUndoBtn();
+}
+
+function changeMonth(delta) {
+  grafikCurrent.setMonth(grafikCurrent.getMonth() + delta);
+  renderGrafik();
+}
+
+function toKey(y, m, d) {
+  return y + '-' + String(m+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+}
+
+function toggleDay(key) {
+  grafikHistory.push(JSON.parse(JSON.stringify(grafikData)));
+  if (grafikHistory.length > 30) grafikHistory.shift();
+
+  const current = grafikData[key] || null;
+  const idx = STATUS_CYCLE.indexOf(current);
+  const next = STATUS_CYCLE[(idx + 1) % STATUS_CYCLE.length];
+
+  if (next === null) {
+    delete grafikData[key];
+  } else {
+    grafikData[key] = next;
+  }
+
+  saveGrafik();
+  renderGrafik();
+}
+
+function clearGrafik() {
+  grafikHistory.push(JSON.parse(JSON.stringify(grafikData)));
+  if (grafikHistory.length > 30) grafikHistory.shift();
+  // Czyścimy tylko bieżący miesiąc
+  const y = grafikCurrent.getFullYear();
+  const m = grafikCurrent.getMonth();
+  Object.keys(grafikData).forEach(key => {
+    if (key.startsWith(y + '-' + String(m+1).padStart(2,'0'))) {
+      delete grafikData[key];
+    }
+  });
+  saveGrafik();
+  renderGrafik();
+}
+
+function undoGrafik() {
+  if (grafikHistory.length === 0) return;
+  grafikData = grafikHistory.pop();
+  saveGrafik();
+  renderGrafik();
+}
+
+function renderGrafik() {
+  const y = grafikCurrent.getFullYear();
+  const m = grafikCurrent.getMonth();
+  const monthNames = ['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec','Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'];
+  document.getElementById('grafik-month-label').textContent = monthNames[m] + ' ' + y;
+
+  // Podsumowanie
+  let cntPraca = 0, cntWolne = 0, cntUrlop = 0;
+  Object.keys(grafikData).forEach(key => {
+    if (key.startsWith(y + '-' + String(m+1).padStart(2,'0'))) {
+      if (grafikData[key] === 'praca') cntPraca++;
+      if (grafikData[key] === 'wolne') cntWolne++;
+      if (grafikData[key] === 'urlop') cntUrlop++;
+    }
+  });
+  document.getElementById('grafik-summary').innerHTML = `
+    <div style="flex:1; background:#1c1c1c; border-radius:10px; padding:8px; text-align:center; border:0.5px solid #2a2a2a;">
+      <div style="font-size:18px; font-weight:700; color:#4cd966;">${cntPraca}</div>
+      <div style="color:#888;">Praca</div>
+    </div>
+    <div style="flex:1; background:#1c1c1c; border-radius:10px; padding:8px; text-align:center; border:0.5px solid #2a2a2a;">
+      <div style="font-size:18px; font-weight:700; color:#aaa;">${cntWolne}</div>
+      <div style="color:#888;">Wolne</div>
+    </div>
+    <div style="flex:1; background:#1c1c1c; border-radius:10px; padding:8px; text-align:center; border:0.5px solid #2a2a2a;">
+      <div style="font-size:18px; font-weight:700; color:#4da3ff;">${cntUrlop}</div>
+      <div style="color:#888;">Urlop</div>
+    </div>
+  `;
+
+  // Kalendarz
+  const firstDay = new Date(y, m, 1);
+  let startWeekday = firstDay.getDay(); // 0=Nd
+  startWeekday = startWeekday === 0 ? 6 : startWeekday - 1; // Pn=0
+
+  const daysInMonth = new Date(y, m + 1, 0).getDate();
+  const today = new Date();
+  const todayKey = toKey(today.getFullYear(), today.getMonth(), today.getDate());
+
+  let html = '';
+  // Puste komórki na początku
+  for (let i = 0; i < startWeekday; i++) {
+    html += `<div style="height:44px;"></div>`;
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const key = toKey(y, m, d);
+    const status = grafikData[key] || null;
+    const isToday = key === todayKey;
+    const bg = status ? STATUS_COLORS[status] : '#1c1c1c';
+    const border = isToday ? '2px solid #fff' : '0.5px solid #2a2a2a';
+    const color = status ? '#111' : '#e0e0e0';
+
+    html += `
+      <div onclick="toggleDay('${key}')" 
+        style="height:44px; border-radius:10px; background:${bg}; border:${border}; 
+        display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:600; 
+        color:${color}; cursor:pointer; user-select:none;">
+        ${d}
+      </div>`;
+  }
+
+  document.getElementById('grafik-calendar').innerHTML = html;
+}
+
+loadGrafik();
+
+// ===== URLOP =====
+const URLOP_ROK = 26;      // limit urlopu na rok
+const OPIEKA_ROK = 2;      // limit opieki na rok
+let urlopEntries = [];     // {id, type, from, to, days}
+let urlopHistory = [];
+let urlopIdCounter = 1;
+let urlopCurrentType = 'urlop';
+
+function loadUrlop() {
+  try {
+    const raw = localStorage.getItem('urlop_data');
+    if (raw) {
+      const data = JSON.parse(raw);
+      urlopEntries = data.entries || [];
+      urlopIdCounter = data.idCounter || 1;
+    }
+    const hist = localStorage.getItem('urlop_history');
+    if (hist) urlopHistory = JSON.parse(hist);
+  } catch(e) {
+    urlopEntries = [];
+    urlopHistory = [];
+  }
+  updateUrlopUndoBtn();
+}
+
+function saveUrlop() {
+  try {
+    localStorage.setItem('urlop_data', JSON.stringify({ entries: urlopEntries, idCounter: urlopIdCounter }));
+    localStorage.setItem('urlop_history', JSON.stringify(urlopHistory));
+  } catch(e) {}
+  updateUrlopUndoBtn();
+}
+
+function updateUrlopUndoBtn() {
+  const btn = document.getElementById('btn-urlop-undo');
+  if (btn) btn.disabled = urlopHistory.length === 0;
+}
+
+function initUrlop() {
+  setUrlopType('urlop');
+  renderUrlop();
+  updateUrlopUndoBtn();
+}
+
+function setUrlopType(type) {
+  urlopCurrentType = type;
+  const btnU = document.getElementById('urlop-type-urlop');
+  const btnO = document.getElementById('urlop-type-opieka');
+  if (type === 'urlop') {
+    btnU.style.background = '#1a6edb';
+    btnU.style.color = '#fff';
+    btnU.style.border = 'none';
+    btnO.style.background = '#1a1a2a';
+    btnO.style.color = '#aaa';
+    btnO.style.border = '0.5px solid #333';
+  } else {
+    btnO.style.background = '#1a6edb';
+    btnO.style.color = '#fff';
+    btnO.style.border = 'none';
+    btnU.style.background = '#1a1a2a';
+    btnU.style.color = '#aaa';
+    btnU.style.border = '0.5px solid #333';
+  }
+}
+
+function calcDays(from, to) {
+  const d1 = new Date(from);
+  const d2 = new Date(to);
+  if (d2 < d1) return 0;
+  return Math.floor((d2 - d1) / (1000*60*60*24)) + 1; // włącznie
+}
+
+function formatDateU(iso) {
+  if (!iso) return '—';
+  const [y,m,d] = iso.split('-');
+  return d + '.' + m + '.' + y.slice(2);
+}
+
+function getYearStats() {
+  const START_YEAR = 2026; // urlop liczymy od 2026
+  const nowYear = Math.max(new Date().getFullYear(), START_YEAR);
+  const prevYear = nowYear > START_YEAR ? nowYear - 1 : null;
+
+  // Zużyte w danym roku
+  let usedUrlop = { [nowYear]: 0 };
+  let usedOpieka = { [nowYear]: 0 };
+  if (prevYear) {
+    usedUrlop[prevYear] = 0;
+    usedOpieka[prevYear] = 0;
+  }
+
+  urlopEntries.forEach(e => {
+    const y = parseInt(e.from.slice(0,4));
+    if (y < START_YEAR) return; // ignorujemy wszystko przed 2026
+    if (e.type === 'urlop') {
+      usedUrlop[y] = (usedUrlop[y] || 0) + e.days;
+    } else {
+      usedOpieka[y] = (usedOpieka[y] || 0) + e.days;
+    }
+  });
+
+  // Pozostałe z poprzedniego roku (przeniesienie) – tylko jeśli jest poprzedni rok >= 2026
+  const remainPrev = prevYear ? Math.max(0, URLOP_ROK - (usedUrlop[prevYear] || 0)) : 0;
+  // Pozostałe z bieżącego roku
+  const remainNow = Math.max(0, URLOP_ROK - (usedUrlop[nowYear] || 0));
+  // Całkowite dostępne = przeniesione + bieżące
+  const totalAvailable = remainPrev + remainNow;
+  const totalUsed = (prevYear ? (usedUrlop[prevYear] || 0) : 0) + (usedUrlop[nowYear] || 0);
+
+  const opiekaUsed = usedOpieka[nowYear] || 0;
+  const opiekaRemain = Math.max(0, OPIEKA_ROK - opiekaUsed);
+
+  return {
+    nowYear, prevYear,
+    remainPrev, remainNow,
+    totalAvailable, totalUsed,
+    opiekaUsed, opiekaRemain,
+    usedUrlop, usedOpieka
+  };
+}
+
+function addUrlop() {
+  const from = document.getElementById('urlop-from').value;
+  const to = document.getElementById('urlop-to').value;
+  if (!from || !to) { alert('Podaj datę od i do'); return; }
+
+  const days = calcDays(from, to);
+  if (days <= 0) { alert('Data „do” musi być późniejsza lub równa „od”'); return; }
+
+  urlopHistory.push(JSON.parse(JSON.stringify(urlopEntries)));
+  if (urlopHistory.length > 20) urlopHistory.shift();
+
+  urlopEntries.push({
+    id: urlopIdCounter++,
+    type: urlopCurrentType,
+    from,
+    to,
+    days
+  });
+
+  // Sortuj od najnowszych
+  urlopEntries.sort((a,b) => b.from.localeCompare(a.from));
+
+  document.getElementById('urlop-from').value = '';
+  document.getElementById('urlop-to').value = '';
+
+  saveUrlop();
+  renderUrlop();
+}
+
+function removeUrlop(id) {
+  urlopHistory.push(JSON.parse(JSON.stringify(urlopEntries)));
+  if (urlopHistory.length > 20) urlopHistory.shift();
+  urlopEntries = urlopEntries.filter(e => e.id !== id);
+  saveUrlop();
+  renderUrlop();
+}
+
+function clearUrlop() {
+  urlopHistory.push(JSON.parse(JSON.stringify(urlopEntries)));
+  if (urlopHistory.length > 20) urlopHistory.shift();
+  urlopEntries = [];
+  saveUrlop();
+  renderUrlop();
+}
+
+function undoUrlop() {
+  if (urlopHistory.length === 0) return;
+  urlopEntries = urlopHistory.pop();
+  saveUrlop();
+  renderUrlop();
+}
+
+function renderUrlop() {
+  const stats = getYearStats();
+  const sumEl = document.getElementById('urlop-summary');
+
+  let remainHtml = '';
+  if (stats.remainPrev > 0) {
+    remainHtml = `
+      <div style="margin-top:6px; color:#4da3ff;">${stats.remainPrev} dni z ${stats.prevYear}</div>
+      <div style="color:#4cd966;">${stats.remainNow} dni z ${stats.nowYear}</div>
+    `;
+  } else {
+    remainHtml = `<div style="margin-top:6px; color:#4cd966;">Pozostało: <strong>${stats.remainNow}</strong> dni</div>`;
+  }
+
+  sumEl.innerHTML = `
+    <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+      <span>Wykorzystano</span><strong>${stats.totalUsed} dni</strong>
+    </div>
+    ${remainHtml}
+    <div style="margin-top:8px; padding-top:8px; border-top:0.5px solid #333; display:flex; justify-content:space-between;">
+      <span>Opieka</span>
+      <span>użyte ${stats.opiekaUsed} / zostało <strong style="color:#f0a500">${stats.opiekaRemain}</strong></span>
+    </div>
+  `;
+
+  const container = document.getElementById('urlop-list');
+  if (urlopEntries.length === 0) {
+    container.innerHTML = '<div class="empty">Brak wpisanych urlopów</div>';
+    return;
+  }
+
+  let html = `<div class="list-header"><div class="list-count">${urlopEntries.length} wpisów</div></div>`;
+
+  urlopEntries.forEach(e => {
+    const typeLabel = e.type === 'urlop' ? '🏖️ Urlop' : '👶 Opieka';
+    const typeColor = e.type === 'urlop' ? '#4da3ff' : '#f0a500';
+    html += `
+      <div class="item" style="border-left: 5px solid ${typeColor}">
+        <div class="item-top">
+          <div class="item-name">${formatDateU(e.from)} – ${formatDateU(e.to)}</div>
+          <div class="item-ep">${e.days} dni</div>
+        </div>
+        <div class="item-meta">
+          <span class="meta-badge" style="color:${typeColor}">${typeLabel}</span>
+        </div>
+        <div style="margin-top:8px; text-align:right;">
+          <button type="button" onclick="removeUrlop(${e.id})"
+            style="background:#2a1010; border:0.5px solid #5a2020; color:#ff5555; font-size:13px; font-weight:600;
+            cursor:pointer; padding:5px 12px; border-radius:8px;">Usuń</button>
+        </div>
+      </div>`;
+  });
+
+  container.innerHTML = html;
+}
+
+loadUrlop();
+
+// ===== ZADANIA =====
+let zadList = [];
+let zadHistory = [];
+let zadIdCounter = 1;
+let currentZadId = null;
+
+function loadZad() {
+  try {
+    const raw = localStorage.getItem('zadania_data');
+    if (raw) {
+      const data = JSON.parse(raw);
+      zadList = data.list || [];
+      zadIdCounter = data.idCounter || 1;
+    }
+    const hist = localStorage.getItem('zadania_history');
+    if (hist) zadHistory = JSON.parse(hist);
+  } catch(e) {
+    zadList = [];
+    zadHistory = [];
+  }
+  updateZadUndoBtn();
+}
+
+function saveZad() {
+  try {
+    localStorage.setItem('zadania_data', JSON.stringify({ list: zadList, idCounter: zadIdCounter }));
+    localStorage.setItem('zadania_history', JSON.stringify(zadHistory));
+  } catch(e) {}
+  updateZadUndoBtn();
+}
+
+function updateZadUndoBtn() {
+  const btn = document.getElementById('btn-zad-undo');
+  if (btn) btn.disabled = zadHistory.length === 0;
+}
+
+function initZad() {
+  renderZad();
+  updateZadUndoBtn();
+}
+
+function addZad() {
+  const title = document.getElementById('zad-title').value.trim();
+  const content = document.getElementById('zad-content').value.trim();
+  if (!title) { alert('Podaj tytuł zadania'); return; }
+
+  zadHistory.push(JSON.parse(JSON.stringify(zadList)));
+  if (zadHistory.length > 20) zadHistory.shift();
+
+  zadList.unshift({
+    id: zadIdCounter++,
+    title,
+    content: content || '',
+    status: 'open' // open | done | cancelled
+  });
+
+  document.getElementById('zad-title').value = '';
+  document.getElementById('zad-content').value = '';
+
+  saveZad();
+  renderZad();
+}
+
+function openZad(id) {
+  currentZadId = id;
+  const zad = zadList.find(z => z.id === id);
+  if (!zad) return;
+
+  document.getElementById('zad-detail-title').textContent = zad.title;
+  document.getElementById('zad-detail-content').textContent = zad.content || '(brak treści)';
+  showScreen('zad-detail');
+}
+
+function markZadDone() {
+  if (currentZadId === null) return;
+  zadHistory.push(JSON.parse(JSON.stringify(zadList)));
+  if (zadHistory.length > 20) zadHistory.shift();
+
+  const zad = zadList.find(z => z.id === currentZadId);
+  if (zad) zad.status = 'done';
+  saveZad();
+  showScreen('zadania');
+}
+
+function markZadCancel() {
+  if (currentZadId === null) return;
+  zadHistory.push(JSON.parse(JSON.stringify(zadList)));
+  if (zadHistory.length > 20) zadHistory.shift();
+
+  const zad = zadList.find(z => z.id === currentZadId);
+  if (zad) zad.status = 'cancelled';
+  saveZad();
+  showScreen('zadania');
+}
+
+function removeZad(id) {
+  zadHistory.push(JSON.parse(JSON.stringify(zadList)));
+  if (zadHistory.length > 20) zadHistory.shift();
+  zadList = zadList.filter(z => z.id !== id);
+  saveZad();
+  renderZad();
+}
+
+function clearZad() {
+  zadHistory.push(JSON.parse(JSON.stringify(zadList)));
+  if (zadHistory.length > 20) zadHistory.shift();
+  zadList = [];
+  saveZad();
+  renderZad();
+}
+
+function undoZad() {
+  if (zadHistory.length === 0) return;
+  zadList = zadHistory.pop();
+  saveZad();
+  renderZad();
+}
+
+function renderZad() {
+  const container = document.getElementById('zad-list');
+  if (zadList.length === 0) {
+    container.innerHTML = '<div class="empty">Brak zadań</div>';
+    return;
+  }
+
+  let html = `<div class="list-header"><div class="list-count">${zadList.length} zadań</div></div>`;
+
+  zadList.forEach(z => {
+    let borderColor = '#2a2a2a';
+    let statusBadge = '';
+    if (z.status === 'done') {
+      borderColor = '#4cd966';
+      statusBadge = '<span class="meta-badge" style="color:#4cd966;">✅ Zrobione</span>';
+    } else if (z.status === 'cancelled') {
+      borderColor = '#ff5555';
+      statusBadge = '<span class="meta-badge" style="color:#ff5555;">❌ Anulowane</span>';
+    }
+
+    html += `
+      <div class="item" style="border-left: 5px solid ${borderColor}; cursor:pointer;" onclick="openZad(${z.id})">
+        <div class="item-top">
+          <div class="item-name">${z.title}</div>
+        </div>
+        <div class="item-meta">
+          ${statusBadge}
+        </div>
+        <div style="margin-top:8px; text-align:right;" onclick="event.stopPropagation()">
+          <button type="button" onclick="removeZad(${z.id})"
+            style="background:#2a1010; border:0.5px solid #5a2020; color:#ff5555; font-size:13px; font-weight:600;
+            cursor:pointer; padding:5px 12px; border-radius:8px;">Usuń</button>
+        </div>
+      </div>`;
+  });
+
+  container.innerHTML = html;
+}
+
+loadZad();
+
+// ===== SZYBKIE NOTATKI =====
+function loadNotatki() {
+  try {
+    const raw = localStorage.getItem('szybkie_notatki');
+    if (raw !== null) {
+      const el = document.getElementById('notatki-area');
+      if (el) el.value = raw;
+    }
+  } catch(e) {}
+}
+
+function saveNotatki() {
+  try {
+    const el = document.getElementById('notatki-area');
+    if (el) localStorage.setItem('szybkie_notatki', el.value);
+  } catch(e) {}
+}
+
+function clearNotatki() {
+  const el = document.getElementById('notatki-area');
+  if (el) {
+    el.value = '';
+    saveNotatki();
+  }
+}
+
+function initNotatki() {
+  loadNotatki();
+}
+
+// Załaduj notatki przy starcie (gdy element istnieje)
+document.addEventListener('DOMContentLoaded', loadNotatki);
+loadNotatki();
+
+// ===== BACKUP =====
+const BACKUP_KEYS = [
+  'przydzial_szefowej', 'przydzial_history',
+  'wolne_gniazda', 'wolne_history',
+  'puste_gniazda', 'puste_history',
+  'zablokowane_palety', 'zablokowane_history',
+  'so_palety', 'so_history',
+  'grafik_data', 'grafik_history',
+  'urlop_data', 'urlop_history',
+  'zadania_data', 'zadania_history',
+  'szybkie_notatki'
+];
+
+function initBackup() {
+  const data = {};
+  BACKUP_KEYS.forEach(k => {
+    try {
+      const v = localStorage.getItem(k);
+      if (v !== null) data[k] = v;
+    } catch(e) {}
+  });
+  data._meta = { date: new Date().toISOString(), version: 1 };
+  document.getElementById('backup-export').value = JSON.stringify(data, null, 2);
+  document.getElementById('backup-import').value = '';
+}
+
+function copyBackup() {
+  const el = document.getElementById('backup-export');
+  el.select();
+  el.setSelectionRange(0, 999999);
+  try {
+    navigator.clipboard.writeText(el.value).then(() => {
+      alert('Backup skopiowany do schowka');
+    }).catch(() => {
+      document.execCommand('copy');
+      alert('Backup skopiowany');
+    });
+  } catch(e) {
+    document.execCommand('copy');
+    alert('Backup skopiowany');
+  }
+}
+
+function restoreBackup() {
+  const raw = document.getElementById('backup-import').value.trim();
+  if (!raw) { alert('Wklej dane backupu'); return; }
+  try {
+    const data = JSON.parse(raw);
+    BACKUP_KEYS.forEach(k => {
+      if (data[k] !== undefined) {
+        localStorage.setItem(k, data[k]);
+      }
+    });
+    alert('Backup przywrócony. Odśwież stronę, żeby zobaczyć dane.');
+    location.reload();
+  } catch(e) {
+    alert('Błąd – niepoprawny format backupu');
+  }
+}
+
+// ===== UNIWERSALNE KOPIOWANIE =====
+function copyText(text) {
+  if (!text) { alert('Brak danych do skopiowania'); return; }
+
+  // Metoda 1: nowoczesny schowek
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => {
+      alert('✓ Skopiowano do schowka');
+    }).catch(() => {
+      fallbackCopy(text);
+    });
+  } else {
+    fallbackCopy(text);
+  }
+}
+
+function fallbackCopy(text) {
+  // Metoda 2: ukryte textarea + execCommand
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.left = '0';
+  ta.style.top = '0';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  ta.setSelectionRange(0, text.length);
+  let ok = false;
+  try { ok = document.execCommand('copy'); } catch(e) {}
+  document.body.removeChild(ta);
+
+  if (ok) {
+    alert('✓ Skopiowano');
+  } else {
+    // Metoda 3: pokaż tekst do ręcznego skopiowania
+    showCopyModal(text);
+  }
+}
+
+function showCopyModal(text) {
+  const existing = document.getElementById('copy-modal');
+  if (existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'copy-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;flex-direction:column;padding:20px;';
+  modal.innerHTML = `
+    <div style="color:#fff;font-size:15px;margin-bottom:10px;font-weight:600;">Zaznacz i skopiuj (Ctrl+C / przytrzymaj)</div>
+    <textarea id="copy-modal-ta" style="flex:1;width:100%;background:#1a1a1a;color:#e0e0e0;border:1px solid #444;border-radius:10px;padding:12px;font-size:13px;resize:none;">${text.replace(/</g,'&lt;')}</textarea>
+    <button onclick="document.getElementById('copy-modal').remove()" 
+      style="margin-top:12px;height:44px;background:#1a6edb;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;">Zamknij</button>
+  `;
+  document.body.appendChild(modal);
+  const ta = document.getElementById('copy-modal-ta');
+  ta.focus();
+  ta.select();
+}
+
+function copyPrzydzial() {
+  if (!items || items.length === 0) { alert('Brak listy'); return; }
+
+  const selected = items.filter((_, idx) => przydzialSelected[idx]);
+  if (selected.length === 0) {
+    alert('Zaznacz kafelki do skopiowania\n(tap na kafelek)');
+    return;
+  }
+
+  let t = '';
+  selected.forEach(i => {
+    t += `${i.gniazdo} | ${i.art} | ${i.name} | ${i.ep} EP\n`;
+  });
+  copyText(t.trim());
+}
+
+function copyPuste() {
+  if (!pusteState || !pusteState.items || Object.keys(pusteState.items).length === 0) {
+    alert('Brak danych'); return;
+  }
+  let t = '';
+  Object.entries(pusteState.items).forEach(([g, first]) => {
+    const days = daysBetween(first, pusteState.date);
+    const st = getStatus(days);
+    t += `${g} | ${days} dni | ${st.label}\n`;
+  });
+  copyText(t.trim());
+}
+
+function copyZab() {
+  if (!zabList || zabList.length === 0) { alert('Brak danych'); return; }
+  let t = '';
+  zabList.forEach(i => {
+    const d = daysLeft(i.expiry);
+    t += `${i.name} | ${i.expiry} | ${d} dni | ${i.location}\n`;
+  });
+  copyText(t.trim());
+}
+
+function copySo() {
+  if (!soList || soList.length === 0) { alert('Brak danych'); return; }
+  let t = '';
+  soList.forEach(i => {
+    t += `${i.name} | ${i.expiry || '—'} | ${i.ep} EP | ${i.location}\n`;
+  });
+  copyText(t.trim());
+}
+
+function copyWolne() {
+  if (!wolne || wolne.length === 0) { alert('Brak danych'); return; }
+  copyText(wolne.join('\n'));
+}
+</script>
+</body>
+</html>
